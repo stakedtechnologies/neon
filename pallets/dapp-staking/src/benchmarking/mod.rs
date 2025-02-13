@@ -1137,6 +1137,28 @@ mod benchmarks {
         );
     }
 
+    #[benchmark]
+    fn set_static_tier_params() {
+        initial_config::<T>();
+
+        let mut tier_params = StaticTierParams::<T>::get();
+        assert!(tier_params.is_valid(), "Sanity check");
+
+        // Modify them so they aren't the same anymore
+        tier_params.reward_portion[0] = Permill::zero();
+
+        #[extrinsic_call]
+        _(RawOrigin::Root, tier_params.clone());
+
+        assert_eq!(StaticTierParams::<T>::get(), tier_params);
+        assert_last_event::<T>(
+            Event::<T>::NewTierParameters {
+                params: tier_params,
+            }
+            .into(),
+        );
+    }
+
     impl_benchmark_test_suite!(
         Pallet,
         crate::benchmarking::tests::new_test_ext(),
